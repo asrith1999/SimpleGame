@@ -14,6 +14,8 @@ static host, or enable GitHub Pages from the repository's main branch/root.
 Hosted private preview: https://asrith-pong-1114.muhammedasrith.chatgpt.site
 (sign in with the owning ChatGPT account).
 
+Vercel deployment: https://asrith-pong.vercel.app
+
 Syntax check: `node --check game.js`. Gameplay and pointer controls also need
 real-browser verification. This is a single-player Pong game; the separate
 IRON RIFT repository contains the network multiplayer project.
