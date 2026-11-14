@@ -2,12 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Simple Pong Game</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>Simple Pong Game</h1>
+  <p>Move your mouse or drag a finger on the court. First to 7 wins.</p>
+  <p id="score" aria-live="polite">You 0 — Computer 0</p>
   <canvas id="pong" width="800" height="400"></canvas>
+  <p id="status" role="status">Play against the computer.</p>
+  <button id="pause" type="button">Pause</button>
+  <button id="restart" type="button">New game</button>
   <script src="game.js"></script>
 </body>
 </html>

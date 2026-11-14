@@ -19,14 +19,20 @@ let ballX = WIDTH / 2 - BALL_SIZE / 2;
 let ballY = HEIGHT / 2 - BALL_SIZE / 2;
 let ballSpeedX = 5 * (Math.random() > 0.5 ? 1 : -1);
 let ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+let leftScore = 0;
+let rightScore = 0;
+let paused = false;
+let finished = false;
 
 // Mouse controls for left paddle
-canvas.addEventListener('mousemove', (e) => {
+function movePlayer(e) {
   const rect = canvas.getBoundingClientRect();
-  const mouseY = e.clientY - rect.top;
+  const mouseY = (e.clientY - rect.top) * HEIGHT / rect.height;
   leftPaddleY = mouseY - PADDLE_HEIGHT / 2;
   leftPaddleY = Math.max(0, Math.min(HEIGHT - PADDLE_HEIGHT, leftPaddleY));
-});
+}
+canvas.addEventListener('pointermove', movePlayer);
+canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); movePlayer(e); });
 
 // Draw paddles
 function drawPaddle(x, y) {
@@ -52,11 +58,11 @@ function drawNet() {
 }
 
 // Simple AI for right paddle
-function moveAIPaddle() {
+function moveAIPaddle(step) {
   // Follow the ball with some delay (change 0.07 for difficulty)
   const paddleCenter = rightPaddleY + PADDLE_HEIGHT / 2;
-  if (paddleCenter < ballY) rightPaddleY += 4;
-  else if (paddleCenter > ballY) rightPaddleY -= 4;
+  if (paddleCenter < ballY) rightPaddleY += 4 * step;
+  else if (paddleCenter > ballY) rightPaddleY -= 4 * step;
   // Stay within bounds
   rightPaddleY = Math.max(0, Math.min(HEIGHT - PADDLE_HEIGHT, rightPaddleY));
 }
@@ -68,10 +74,10 @@ function resetBall() {
   ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
 }
 
-function update() {
+function update(step) {
   // Move ball
-  ballX += ballSpeedX;
-  ballY += ballSpeedY;
+  ballX += ballSpeedX * step;
+  ballY += ballSpeedY * step;
 
   // Wall collision
   if (ballY <= 0 || ballY + BALL_SIZE >= HEIGHT) {
@@ -104,10 +110,16 @@ function update() {
 
   // Score (ball out of bounds)
   if (ballX < 0 || ballX > WIDTH) {
+    if (ballX < 0) rightScore++; else leftScore++;
+    document.getElementById('score').textContent = `You ${leftScore} — Computer ${rightScore}`;
+    if (leftScore >= 7 || rightScore >= 7) {
+      finished = true;
+      document.getElementById('status').textContent = leftScore >= 7 ? 'You win! Start a new game to play again.' : 'Computer wins. Start a new game to try again.';
+    }
     resetBall();
   }
 
-  moveAIPaddle();
+  moveAIPaddle(step);
 }
 
 function draw() {
@@ -119,11 +131,29 @@ function draw() {
   drawBall(ballX, ballY);
 }
 
-function gameLoop() {
-  update();
+let lastFrame;
+function gameLoop(now) {
+  const step = lastFrame === undefined ? 1 : Math.min(2, (now - lastFrame) / (1000 / 60));
+  lastFrame = now;
+  if (!paused && !finished) update(step);
   draw();
   requestAnimationFrame(gameLoop);
 }
 
 // Start the game
-gameLoop();
+requestAnimationFrame(gameLoop);
+
+document.getElementById('pause').addEventListener('click', e => {
+  if (finished) return;
+  paused = !paused;
+  e.target.textContent = paused ? 'Resume' : 'Pause';
+  document.getElementById('status').textContent = paused ? 'Paused.' : 'Play against the computer.';
+});
+document.getElementById('restart').addEventListener('click', () => {
+  leftScore = 0; rightScore = 0; paused = false; finished = false;
+  leftPaddleY = rightPaddleY = HEIGHT / 2 - PADDLE_HEIGHT / 2;
+  document.getElementById('score').textContent = 'You 0 — Computer 0';
+  document.getElementById('pause').textContent = 'Pause';
+  document.getElementById('status').textContent = 'Play against the computer.';
+  resetBall();
+});
